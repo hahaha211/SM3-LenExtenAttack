@@ -5,6 +5,14 @@ MAX = 2 ** 32
 FRONTS = 8
 v1 = 0x13579acefdb8642013579acefdb8642013579acefdb8642013579acefdb86420
 t = [0x79cc4519, 0x7a879d8a]
+table={'0':'0000','1':'0001','2':'0010','3':'0011','4':'0100','5':'0101','6':'0110','7':'0111',
+       '8':'1000','9':'1001','a':'1010','b':'1011','c':'1100','d':'1101','e':'1110','f':'1111'}
+
+def Hex2Bin(hexs):
+    bins=''
+    for i in hexs:
+        bins+=table[i]
+    return bins
 
 def Int2Bin(octs, ra):
     bins = list(bin(octs)[2:])
@@ -134,35 +142,39 @@ def SM3(mess,vi):
     return result
 
 def LenExtAtt(mess):
-    print("攻击信息为%x"%mess)
+    print("攻击信息为%s"%mess)
     msg_1=fillFunc(mess)
     m1=int(msg_1,2)
     print("填充后的信息为\n%x"%m1)
     res=IterFunc(msg_1,v1)
     result=int(res,2)
     print("杂凑值SM3=%x"%result)
+    #随机附带信息M2
     ran=random.randint(0,2**12)
     print("\n附带消息为%x"%ran)
+    #初始常量IV改变
     v2=result
-    msg_2=fillFunc(ran)
-    m2=int(msg_2,2)
-    res2=IterFunc(msg_2,v2)
-    result2=int(res2,2)
-    print("杂凑值SM3=%x"%result2)
-    ran2=random.randint(0,2**12)
-    msg=int(fillFunc(ran2),2)
-    msg_3=msg*16**(len(hex(m2))-2)+m2
-    print("\n伪造信息为\n%x"%(msg*16**(len(hex(ran))-2)+ran))
-    result3=int(IterFunc('%0128x'%msg_3,v2),2)
-    print("杂凑值SM3=%x\n"%result3)
-    if result3==result:
+    msg_2='%x'%ran
+    lens=int(len(mess))
+    for i in range(lens):
+        msg_2='0'+msg_2
+    res2=SM3(msg_2,v2)
+    print("msg_2=",msg_2)
+    print("杂凑值SM3=%x"%res2)
+    #msg=int(fillFunc(ran2),2)
+    msg_3=m1*16**(len(hex(ran))-2)+ran
+    print("\n伪造信息为\n%x"%msg_3)
+    result3=SM3(hex(msg_3)[2:],v1)
+    print("级联后杂凑值SM3=%x\n"%result3)
+    #print("杂凑值SM3=%x\n"%int(IterFunc(hex(msg),v2),2))
+    if result3==res2:
         print("攻击成功！")
         return
     print("攻击失败")
     return
 
 if __name__ == '__main__':
-    mess=0xa1a1a1a1a1a1a1
+    mess='a1a1a1a1a1a1a1'
     start = time.time()
     LenExtAtt(mess)
     end = time.time()
