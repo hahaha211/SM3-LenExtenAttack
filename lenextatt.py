@@ -1,19 +1,22 @@
 import time
 import random
 
+
 MAX = 2 ** 32
 FRONTS = 8
 v1 = 0x13579acefdb8642013579acefdb8642013579acefdb8642013579acefdb86420
 t = [0x79cc4519, 0x7a879d8a]
 table={'0':'0000','1':'0001','2':'0010','3':'0011','4':'0100','5':'0101','6':'0110','7':'0111',
        '8':'1000','9':'1001','a':'1010','b':'1011','c':'1100','d':'1101','e':'1110','f':'1111'}
-
+ 
+#十六进制数对应字符转4bit二进制字符串
 def Hex2Bin(hexs):
     bins=''
     for i in hexs:
         bins+=table[i]
     return bins
 
+#十进制数转定长二进制字符串
 def Int2Bin(octs, ra):
     bins = list(bin(octs)[2:])
     #补零
@@ -21,6 +24,7 @@ def Int2Bin(octs, ra):
         bins.insert(0, '0')
     return ''.join(bins)
 
+#循环左移
 def LoopLeftShift(a, k):
     res = list(Int2Bin(a, 32))
     for i in range(0,k):
@@ -28,6 +32,7 @@ def LoopLeftShift(a, k):
         res.append(temp)
     return int(''.join(res), 2)
 
+#消息扩展函数
 def msgExten(b):
     w = []
     w1 = []
@@ -45,6 +50,8 @@ def msgExten(b):
         w1.append(f1)
     return w, w1
 
+#消息填充函数
+##填充规则：补足为64字节的倍数，先填充一个'1',之后填'0',最后8字节填充消息的长度
 def fillFunc(mess):
     mess = bin(mess)[2:]
     for i in range(4):
@@ -141,6 +148,7 @@ def SM3(mess,vi):
     result=int(res,2)
     return result
 
+#长度扩展攻击函数
 def LenExtAtt(mess):
     print("攻击信息为%s"%mess)
     msg_1=fillFunc(mess)
